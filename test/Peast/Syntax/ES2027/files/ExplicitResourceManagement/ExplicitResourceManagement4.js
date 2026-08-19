@@ -1,0 +1,1 @@
+function test() {using a = 1;}

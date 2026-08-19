@@ -1,0 +1,10 @@
+async function test () {
+	await using a = b;
+}
+/**************************************************/
+async function test(){await using a=b;}
+/**************************************************/
+async function test (  )
+{
+	await using a = b;
+}

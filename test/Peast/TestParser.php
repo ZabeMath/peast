@@ -166,6 +166,13 @@ abstract class TestParser extends TestBase
         ),
         "hashbangComments"=> array(
             array("ES2023", "files", "HashbangComments", "HashbangComments.js")
+        ),
+        "importAttributes"=> array(
+            array("ES2025", "files", "modules", "ImportAttributes", "ImportAttributes.js")
+        ),
+        "explicitResourceManagement"=> array(
+            array("ES2027", "files", "ExplicitResourceManagement", "ExplicitResourceManagement.js"),
+            array("ES2027", "files", "modules", "ExplicitResourceManagement", "ModuleExplicitResourceManagement.js")
         )
     );
     

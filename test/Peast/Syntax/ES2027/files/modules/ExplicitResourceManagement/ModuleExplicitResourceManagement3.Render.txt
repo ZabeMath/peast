@@ -1,0 +1,8 @@
+for await (await using a of b) {
+}
+/**************************************************/
+for await(await using a of b){}
+/**************************************************/
+for await ( await using a of b )
+{
+}
