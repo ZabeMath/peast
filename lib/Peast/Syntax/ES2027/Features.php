@@ -18,4 +18,10 @@ namespace Peast\Syntax\ES2027;
  */
 class Features extends \Peast\Syntax\ES2026\Features
 {
+    /**
+     * Explicit resource management
+     *
+     * @var bool
+     */
+    public $explicitResourceManagement = true;
 }
