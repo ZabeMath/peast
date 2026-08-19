@@ -140,9 +140,12 @@ class Parser extends ParserAbstract
             "allowIn" => false,
             "allowYield" => false,
             "allowAwait" => false,
+            "allowPattern" => false,
+            // Not standard
             "inSwitch" => false,
             "inIteration" => false,
-            "allowPattern" => false
+            "inBlock" => false,
+            "inForLexDeclaration" => false
         );
         //If async/await is not enabled remove the
         //relative context properties
@@ -470,7 +473,9 @@ class Parser extends ParserAbstract
     {
         if ($token = $this->scanner->consume("{")) {
             
-            $statements = $this->parseStatementList();
+            $statements = $this->isolateContext(
+                array("inBlock" => true), "parseStatementList"
+            );
             if ($this->scanner->consume("}")) {
                 $node = $this->createNode("BlockStatement", $token);
                 if ($statements) {
@@ -1270,7 +1275,8 @@ class Parser extends ParserAbstract
             
             $this->scanner->setState($afterBracketState);
             if ($init = $this->isolateContext(
-                    array("allowIn" => false), "parseLexicalDeclaration"
+                    array("allowIn" => false, "inForLexDeclaration" => true),
+                    "parseLexicalDeclaration"
                 )
             ) {
                 
@@ -1688,7 +1694,8 @@ class Parser extends ParserAbstract
             array(
                 "allowReturn" => true,
                 "inSwitch" => false,
-                "inIteration" => false
+                "inIteration" => false,
+                "inBlock" => true
             ),
             "parseStatementList",
             array(true)
@@ -1967,6 +1974,12 @@ class Parser extends ParserAbstract
 
                 if ($declarations) {
                     $this->checkMandatoryInitializers($declarations, "using");
+
+                    if ($this->sourceType === \Peast\Peast::SOURCE_TYPE_SCRIPT &&
+                        !$this->context->inBlock &&
+                        !$this->context->inForLexDeclaration) {
+                        $this->error("A using declaration can appear only inside blocks in script code");
+                    }
 
                     $this->assertEndOfStatement();
                     $node = $this->createNode("VariableDeclaration", $token);
@@ -2532,12 +2545,14 @@ class Parser extends ParserAbstract
             } else {
                 $list = array();
                 while (true) {
-                    if ($entry = $this->parseWithEntries()) {
-                        $list[] = $entry;
-                        if (!$this->scanner->consume(",")) {
-                            break;
-                        }
-                    } else {
+                    $entry = $this->isolateContext(
+                        array("inBlock" => true), "parseWithEntries"
+                    );
+                    if (!$entry) {
+                        break;
+                    }
+                    $list[] = $entry;
+                    if (!$this->scanner->consume(",")) {
                         break;
                     }
                 }
@@ -2768,7 +2783,7 @@ class Parser extends ParserAbstract
         $staticToken = $this->scanner->consume("static");
         $this->scanner->consume("{");
         $statements = $this->isolateContext(
-            array("allowAwait" => true), "parseStatementList"
+            array("allowAwait" => true, "inBlock" => true), "parseStatementList"
         );
         if ($this->scanner->consume("}")) {
             $node = $this->createNode("StaticBlock", $staticToken);
